@@ -1,4 +1,3 @@
-
 import pygame
 import random
 
@@ -15,6 +14,8 @@ print(selected_people)
 screen=pygame.display.set_mode((1024,720)) 
 running=True
 
+
+
 display_text="Test"
 text_style=pygame.font.SysFont("Arial",30,bold=True)
 text_color=(255,255,255)
@@ -30,20 +31,46 @@ platform_height=platform_max_height*(1-((sum(selected_people))/platform_limit))
 platform_length=500
 
 
-
 person_height=80
 person_width=30
 
-
 recCreate=pygame.Rect(560,100,60,40) #adding people button
 rectb=pygame.Rect(450,100,100,40)
+resetCreate=pygame.Rect(800,100,60,40)
+
 
 font = pygame.font.SysFont("Arial",40 ,bold=True)
 text = ""
 input_active = False
 tbcol=(50,50,50)
 enteredNew=False
-recNew=pygame.Rect(0,0,person_width,person_height)
+
+def reset_variables():
+    global platform_limit, peopleTOpick, selected_people, platform_height
+    platform_limit = random.randint(450, 800)
+    peopleTOpick = random.randint(1, 3)
+    selected_people = random.sample(people_weight_list, peopleTOpick)
+    platform_height = platform_max_height * (1 - ((sum(selected_people)) / platform_limit))
+    file = open('myfile.txt', 'a')
+    file.write("--------------------------------" + '\n' + 'Limit: ' + str(platform_limit) + '\nPeopleTOpick: ' + str(peopleTOpick) + '\nSelected_people: ' + str(selected_people) + '\n')
+    file.close()
+
+######
+background = pygame.image.load("person_icon.png")
+
+image_width, image_height = background.get_size()
+
+recNew = pygame.Rect(0, 0, person_width, person_height)
+
+scaled_image = pygame.transform.scale(background, (80, 80))
+
+file = open('myfile.txt', 'w')
+file = open('myfile.txt', 'a')
+file.write('Limit: ' + str(platform_limit) + '\nPeopleTOpick: ' + str(peopleTOpick) + '\nSelected_people: ' + str(selected_people) + '\n')
+file.close()
+
+
+######
 drawNew=False
 sticking=False
 placed=False
@@ -71,9 +98,10 @@ while running:
         drawNew=True
         enteredNew=False
 
+########
     if drawNew:
         recNew.center=pygame.mouse.get_pos()
-        pygame.draw.rect(screen,(255,255,0),recNew)
+        screen.blit(scaled_image, recNew)
         sticking=True
 
     if sticking&pygame.mouse.get_pressed()[0]:
@@ -81,13 +109,24 @@ while running:
         placed=True
         addedPerson=int(text)
         platform_height=platform_max_height*(1-((sum(selected_people)+addedPerson)/platform_limit))
-        recNew.center=(pygame.mouse.get_pos()[0],700-platform_height-40)
-        pygame.draw.rect(screen,(255,255,0),recNew)
+        if pygame.mouse.get_pos()[0] > 250+platform_length:
+            recNew.center=(250+platform_length,700-platform_height-40)
+        elif pygame.mouse.get_pos()[0] < 250:
+            recNew.center=(250,700-platform_height-40)
+        else:
+            recNew.center=pygame.mouse.get_pos()[0],700-platform_height-40
+
+        screen.blit(scaled_image, recNew)
         text = ""
+        print(addedPerson)
+        file = open('myfile.txt', 'a')
+        file.write('AddedPerson: ' + str(addedPerson) + '\n')
+        file.close()
+
         
     if placed:
         sticking=False
-        pygame.draw.rect(screen,(255,255,0),recNew)
+        screen.blit(scaled_image, recNew)
     
     recPlatform=pygame.Rect(250,700-platform_height,platform_length,platform_height) #creating the platform
 
@@ -96,7 +135,7 @@ while running:
     if recPlatform.collidepoint(pos)&pygame.mouse.get_pressed()[0]: #hold the mouse left-click to expand the platform
         col=(0,255,0)
         #platform_length=300
-        recPlatform.inflate_ip(5, 0)
+        #recPaltform.inflate_ip(5, 0)
         #recPlatform.update(250,400,platform_length,50)
         #platform_length=300
         #recPlatform=pygame.Rect(250,400,350,50)
@@ -134,6 +173,15 @@ while running:
         ccol=(160,0,0)
     else:
         ccol=(255,0,0)    
+
+    ############
+    if resetCreate.collidepoint(pos)&pygame.mouse.get_pressed()[0]:
+        print("Reset")
+        addedPerson=0
+        recNew.center=999,999
+        reset_variables()
+        pygame.time.delay(100)
+
     
     if rectb.collidepoint(pos)&pygame.mouse.get_pressed()[0]:
         input_active = True
@@ -149,17 +197,22 @@ while running:
     
     pygame.draw.rect(screen,ccol,recCreate)
     create_txt("ADD",text_style,text_color,(562,150))
+    create_txt("RESET",text_style,text_color,(800,150))
+    
 
+#####
     for i in range(0,len(selected_people)):   #placing people on the platform
         if len(selected_people)==1:
             recP.center=(250+person_width/2+platform_length/2,700-platform_height-40)
-            pygame.draw.rect(screen,(255,255,0),recP,width=0)
+            screen.blit(scaled_image, recP)
+            
         if len(selected_people)==2:
-            recP.center=(250+person_width/2+i*(platform_length-person_width),700-platform_height-40)
-            pygame.draw.rect(screen,(255,255,0),recP,width=0)
+            recP.center=(250+person_width/2+i*(platform_length-person_width-50),700-platform_height-40)
+            screen.blit(scaled_image, recP)
+            
         if len(selected_people)==3:
-            recP.center=(250+person_width/2+i*(platform_length-person_width)/2,700-platform_height-40)
-            pygame.draw.rect(screen,(255,255,0),recP,width=0)   
+            recP.center=(250+person_width/2+i*(platform_length-person_width-100)/2,700-platform_height-40)
+            screen.blit(scaled_image, recP) 
     
     
     
@@ -171,4 +224,3 @@ while running:
     
     pygame.display.update()
     pygame.time.delay(50)
-
